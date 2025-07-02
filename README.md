@@ -1,2 +1,2 @@
 # SCCM-Resources
-Repository to callect and share resources like Scripts, Configuration Items, etc.
+Repository to collect and share resources like Scripts, Configuration Items, etc.
