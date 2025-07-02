@@ -203,7 +203,7 @@ function Test-WifiProfile_ConfigItem {
 #    For Discovery:
 #
 #        If one profile provided:
-# Test-WifiProfile_ConfigItem -Profile $wfProfile
+# Test-WifiProfile_ConfigItem -fwProfile $wfProfile
 #
 #        If array of profiles provided:
 # $wfProfiles | Test-WifiProfile_ConfigItem
@@ -212,7 +212,7 @@ function Test-WifiProfile_ConfigItem {
 #    For Remediation: 
 #
 #        If one profile provided: 
-# Test-WifiProfile_ConfigItem -Profile $wfProfile -Remediate
+# Test-WifiProfile_ConfigItem -fwProfile $wfProfile -Remediate
 #
 #        If array of profiles provided:
 # $wfProfiles | Test-WifiProfile_ConfigItem -Remediate
