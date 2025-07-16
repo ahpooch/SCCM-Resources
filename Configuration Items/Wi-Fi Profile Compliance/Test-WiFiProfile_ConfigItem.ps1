@@ -182,6 +182,11 @@ function Test-WifiProfile_ConfigItem {
         # Setting content of termporary profile path.
         Set-Content -Path $TempFile -Value $wfProfile.OuterXml
     
+        # Removing current profile befor importing.
+        # This helps update settings such as 'ConnectionMode'
+        $Command = "netsh wran delete profile $($wfProfile.WLANProfile.name)"
+        Invoke-Expression -Command $Command | Out-Null
+
         # Importing profile from temporary file.
         $Command = "netsh wlan add profile filename=`"$TempFile`" interface=`"$Interface`" user=$Scope"
         Invoke-Expression -Command $Command | Out-Null
