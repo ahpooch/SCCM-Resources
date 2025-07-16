@@ -31,6 +31,7 @@ function Test-WifiProfile_ConfigItem {
     .NOTES
     Author: ahpooch
     Created: 01.07.2025
+    Updated: 17.07.2025
 
     .PARAMETER Profile
     Mandatory parameter for providing previously exmported profile in form of [xml]$wfProfile.
@@ -113,7 +114,7 @@ function Test-WifiProfile_ConfigItem {
                 [string]$SSIDHex
             )
             foreach ($wfProfile in $wfProfiles) {
-                [xml]$wfProfileXML = Get-Content -path $wfProfile.fullname
+                [xml]$wfProfileXML = Get-Content -Path $wfProfile.fullname
                 if ($wfProfileXML.WLANProfile.SSIDConfig.SSID.hex -eq $SSIDHex) {
                     return $wfProfileXML
                 }
@@ -150,8 +151,18 @@ function Test-WifiProfile_ConfigItem {
         # If remediation is not needed then only setting Boolean compliance status. It will be returned at the end.
         # Removing non-compliant profile if remediation will follow.
         if ($null -ne $TargetProfile) {
+            # Exporting unencrypted profile to be able to compare passwords in plaintext. We can chose only folder to export, not the name.
+            $Command = "netsh wlan export profile name=`"$($TargetProfile.WLANProfile.name)`" folder=`"$($env:TEMP)`" key=clear"
+            Invoke-Expression -Command $Command | Out-Null
+            # Store temporary file path for removing after import.
+            $UnencryptedTargetProfile = Join-Path -Path $env:TEMP -ChildPath "$Interface-$($TargetProfile.WLANProfile.name).xml"
+            [xml]$UnencryptedTargetProfile_XML = Get-Content -Path $UnencryptedTargetProfile
+            # Removing unencrypted target profile
+            Remove-Item -Path $UnencryptedTargetProfile
             # Comparing provided profile with target profile.
-            $Compliant = $null -eq (Compare-Object -ReferenceObject $wfProfile -DifferenceObject $TargetProfile)
+            $SourceProfileComparable = $wfProfile.OuterXml
+            $TargetProfileCompareble = $UnencryptedTargetProfile_XML.OuterXml
+            $Compliant = $null -eq (Compare-Object -ReferenceObject $SourceProfileComparable -DifferenceObject $TargetProfileCompareble)
             if ($Compliant) {
                 return
             }
@@ -162,7 +173,8 @@ function Test-WifiProfile_ConfigItem {
                 }
                 else {
                     # Removing target profile if not in a compliant state.
-                    Invoke-Expression -Command "netsh wlan delete profile $($TargetProfile.WLANProfile.name)"
+                    $Command = "netsh wlan delete profile $($TargetProfile.WLANProfile.name)"
+                    Invoke-Expression -Command $Command | Out-Null
                 }
             }
         }
@@ -176,7 +188,7 @@ function Test-WifiProfile_ConfigItem {
         # Creating new GUID for temporary profile file that will be imported.
         $Guid = New-Guid
         # Creating path of temporary profile for importing.
-        $TempFile = Join-Path -Path $env:temp -ChildPath "$Guid.xml"
+        $TempFile = Join-Path -Path $env:TEMP -ChildPath "$Guid.xml"
         # Store temporary file path for removing after import.
         $TemporaryFiles += $TempFile
         # Setting content of termporary profile path.
