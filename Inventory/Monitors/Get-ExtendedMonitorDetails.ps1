@@ -292,8 +292,8 @@ foreach ($MonitorInfo in $MonitorsInfo) {
         HorizontalSize    = $MonitorInfo.HorizontalSize
         VerticalSize      = $MonitorInfo.VerticalSize
         DiagonalSize      = $MonitorInfo.DiagonalSize
-        MaxHorizontalRes  = $MonitorsInfo.MaxHorizontalRes
-        MaxVerticalRes    = $MonitorsInfo.MaxVerticalRes
+        MaxHorizontalRes  = $MonitorInfo.MaxHorizontalRes
+        MaxVerticalRes    = $MonitorInfo.MaxVerticalRes
         AspectRatio       = $MonitorInfo.AspectRatio
         ManufacturingYear = $MonitorInfo.ManufacturingYear
         ManufacturingWeek = $MonitorInfo.ManufacturingWeek
