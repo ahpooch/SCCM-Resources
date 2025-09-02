@@ -64,9 +64,9 @@ gwmi Win32_PnPEntity -Filter "Service='monitor'" | % { $k=0 } {
     # Some monitors, especially those attached to VMs either don't have a Device Parameters key or an EDID value. Skip these
     if ($edid -ne $null) {
         # Collect the information from the EDID array in a hashtable
-        $mi.Manufacturer += [char](64 + [Int32]($edid[8] / 4))
-        $mi.Manufacturer += [char](64 + [Int32]($edid[8] % 4) * 8 + [Int32]($edid[9] / 32))
-        $mi.Manufacturer += [char](64 + [Int32]($edid[9] % 32))
+        $mi.Manufacturer += [char](64 + [Int32][math]::floor(($edid[8] / 4)))
+        $mi.Manufacturer += [char](64 + [Int32][math]::floor(($edid[8] % 4) * 8 + [Int32]($edid[9] / 32)))
+        $mi.Manufacturer += [char](64 + [Int32][math]::floor(($edid[9] % 32)))
         $mi.ManufacturingWeek = $edid[16]
         $mi.ManufacturingYear = $edid[17] + 1990
         $mi.HorizontalSize = $edid[21]
