@@ -107,34 +107,144 @@ function Get-GreatestCommonDivisor {
     return $a
 }
 
-# Function to check if WMI class properties match the expected schema
-function Compare-CimClassProperties {
+# Function to get the schema definition for the MonitorDetails CIM class
+function Get-MonitorDetailsCimSchema {
+    [CmdletBinding()]
     param (
+        [Parameter()]
         [string]$ClassName = "MonitorDetails"
     )
     
+    # Define the schema as a structured object
+    $schema = @{
+        ClassName  = $ClassName
+        Namespace  = "root\cimv2"
+        Properties = @(
+            @{
+                Name        = "DeviceID"
+                Type        = [System.Management.CimType]::String
+                Key         = $true
+                ReadOnly    = $false
+                Description = "Unique identifier for the monitor device"
+            },
+            @{
+                Name        = "Name"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Display name of the monitor"
+            },
+            @{
+                Name        = "ManufacturerCode"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Three-letter manufacturer code from EDID data"
+            },
+            @{
+                Name        = "Manufacturer"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Full manufacturer name"
+            },
+            @{
+                Name        = "Model"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Model name or number of the monitor"
+            },
+            @{
+                Name        = "SerialNumber"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Serial number of the monitor"
+            },
+            @{
+                Name        = "EdidString"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Raw EDID data as a string"
+            },
+            @{
+                Name        = "HorizontalSize"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Horizontal size of the monitor in centimeters"
+            },
+            @{
+                Name        = "VerticalSize"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Vertical size of the monitor in centimeters"
+            },
+            @{
+                Name        = "DiagonalSize"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Diagonal size of the monitor in inches"
+            },
+            @{
+                Name        = "MaxHorizontalRes"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Maximum horizontal resolution supported"
+            },
+            @{
+                Name        = "MaxVerticalRes"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Maximum vertical resolution supported"
+            },
+            @{
+                Name        = "AspectRatio"
+                Type        = [System.Management.CimType]::String
+                ReadOnly    = $false
+                Description = "Aspect ratio of the monitor (e.g., 16:9, 4:3)"
+            },
+            @{
+                Name        = "ManufacturingYear"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Year the monitor was manufactured"
+            },
+            @{
+                Name        = "ManufacturingWeek"
+                Type        = [System.Management.CimType]::UInt32
+                ReadOnly    = $false
+                Description = "Week of the year the monitor was manufactured"
+            },
+            @{
+                Name        = "LastSeenDate"
+                Type        = [System.Management.CimType]::DateTime
+                ReadOnly    = $false
+                Description = "Date and time when this monitor was last detected"
+            }
+        )
+    }
+    
+    return $schema
+}
+
+# Function to check if WMI class properties match the expected schema
+function Compare-CimClassProperties {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]$ClassName = "MonitorDetails",
+        
+        [Parameter()]
+        [string]$Namespace = "root\cimv2"
+    )
+    
+    Write-Verbose "Comparing exsisting CIM Class $ClassName with schema"
+    # Get the schema
+    $schema = Get-MonitorDetailsCimSchema -ClassName $ClassName
     try {
         # Get the existing class
-        $existingClass = New-Object System.Management.ManagementClass("root\cimv2", $ClassName, $null)
+        $existingClass = New-Object System.Management.ManagementClass($Namespace, $ClassName, $null)
         
-        # Define the expected properties and their types
-        $expectedProperties = @{
-            "DeviceID"          = [System.Management.CimType]::String
-            "Name"              = [System.Management.CimType]::String
-            "ManufacturerCode"  = [System.Management.CimType]::String
-            "Manufacturer"      = [System.Management.CimType]::String
-            "Model"             = [System.Management.CimType]::String
-            "SerialNumber"      = [System.Management.CimType]::String
-            "EdidString"        = [System.Management.CimType]::String
-            "HorizontalSize"    = [System.Management.CimType]::UInt32
-            "VerticalSize"      = [System.Management.CimType]::UInt32
-            "DiagonalSize"      = [System.Management.CimType]::UInt32
-            "MaxHorizontalRes"  = [System.Management.CimType]::UInt32
-            "MaxVerticalRes"    = [System.Management.CimType]::UInt32
-            "AspectRatio"       = [System.Management.CimType]::String
-            "ManufacturingYear" = [System.Management.CimType]::UInt32
-            "ManufacturingWeek" = [System.Management.CimType]::UInt32
-            "LastSeenDate"      = [System.Management.CimType]::DateTime
+        # Create a hashtable of expected properties and their types for easier comparison
+        $expectedProperties = @{}
+        foreach ($prop in $schema.Properties) {
+            $expectedProperties[$prop.Name] = $prop.Type
         }
         
         # Check if all expected properties exist with correct types
@@ -164,6 +274,30 @@ function Compare-CimClassProperties {
             Write-Verbose "DeviceID is not marked as a key property"
             return $false
         }
+
+        #Check write Qualifier is set for every non-Readonly property
+        foreach ($prop in $existingClass.Properties) {
+            # Get ReadOnly value from schema for current property
+            $ShouldBeReadOnly = [bool] ($schema.Properties | Where-Object { $_.Name -eq $prop.Name } | Select-Object -ExpandProperty ReadOnly)
+            # Get write Qualifier from existing CIM Class
+            $IsReadOnly = -not [bool] $existingClass.Properties[$prop.Name].Qualifiers["write"]
+            # Check compliance with schema
+
+            Write-Verbose "Current property $($prop.Name)"
+            Write-Verbose "`$ShouldBeReadOnly: $($ShouldBeReadOnly)"
+            Write-Verbose "`$IsReadOnly: $($IsReadOnly)"
+            if ($ShouldBeReadOnly ) {
+                if ( -not $IsReadOnly) {
+                    Write-Verbose "Property $($prop.Name) should be Read-only but it is writable."
+                    return $false
+                }
+            } else {
+                if ($IsReadOnly) {
+                    Write-Verbose "Property $($prop.Name) should be writable but it is Read-only."
+                    return $false
+                }
+            }
+        }
         
         # All checks passed
         return $true
@@ -176,19 +310,28 @@ function Compare-CimClassProperties {
 }
 
 # Removes CIM Class MonitorDetails
-function Remove-CIMClass_MonitorDetails {
+function Remove-CimClass_MonitorDetails {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]$ClassName = "MonitorDetails",
+        
+        [Parameter()]
+        [string]$Namespace = "root\cimv2"
+    )
+    
     try {
         # Check if class exists
-        $classExists = (Get-CimClass MonitorDetails -ErrorAction SilentlyContinue) -as [bool]
+        $classExists = (Get-CimClass -ClassName $ClassName -Namespace $Namespace -ErrorAction SilentlyContinue) -as [bool]
         
         if ($classExists) {
             # Compare properties with expected schema
-            $propertiesMatch = Compare-CimClassProperties -ClassName "MonitorDetails"
+            $propertiesMatch = Compare-CimClassProperties -ClassName $ClassName -Namespace $Namespace
             
             if (-not $propertiesMatch) {
                 Write-Verbose "CIM class properties don't match expected schema. Removing class."
-                $MonitorDetailsCIMClass = New-Object System.Management.ManagementClass("root\cimv2", "MonitorDetails", $null)
-                $MonitorDetailsCIMClass.Delete()
+                $CimClass = New-Object System.Management.ManagementClass($Namespace, $ClassName, $null)
+                $CimClass.Delete()
                 return $true
             }
             else {
@@ -205,79 +348,54 @@ function Remove-CIMClass_MonitorDetails {
 }
 
 # Creates a new CIM class to store data
-function Register-CIMClass_MonitorDetails {
-    $newClass = New-Object System.Management.ManagementClass("root\cimv2", [String]::Empty, $null)
-    $newClass["__CLASS"] = "MonitorDetails"
-    $newClass.Qualifiers.Add("Static", $true)
-    # DeviceID Property (key)
-    $newClass.Properties.Add("DeviceID", [System.Management.CimType]::String, $false)
-    $newClass.Properties["DeviceID"].Qualifiers.Add("key", $true)
-    $newClass.Properties["DeviceID"].Qualifiers.Add("read", $true)
-    $newClass.Properties["DeviceID"].Qualifiers.Add("write", $true)
-    # Name Property
-    $newClass.Properties.Add("Name", [System.Management.CimType]::String, $false)
-    $newClass.Properties["Name"].Qualifiers.Add("read", $true)
-    $newClass.Properties["Name"].Qualifiers.Add("write", $true)
-    # ManufacturerCode Property
-    $newClass.Properties.Add("ManufacturerCode", [System.Management.CimType]::String, $false)
-    $newClass.Properties["ManufacturerCode"].Qualifiers.Add("read", $true)
-    $newClass.Properties["ManufacturerCode"].Qualifiers.Add("write", $true)
-    # Manufacturer Property
-    $newClass.Properties.Add("Manufacturer", [System.Management.CimType]::String, $false)
-    $newClass.Properties["Manufacturer"].Qualifiers.Add("read", $true)
-    $newClass.Properties["Manufacturer"].Qualifiers.Add("write", $true)
-    # Model Property
-    $newClass.Properties.Add("Model", [System.Management.CimType]::String, $false)
-    $newClass.Properties["Model"].Qualifiers.Add("read", $true)
-    $newClass.Properties["Model"].Qualifiers.Add("write", $true)
-    # SerialNumber Property
-    $newClass.Properties.Add("SerialNumber", [System.Management.CimType]::String, $false)
-    $newClass.Properties["SerialNumber"].Qualifiers.Add("read", $true)
-    $newClass.Properties["SerialNumber"].Qualifiers.Add("write", $true)
-    # EdidString Property
-    $newClass.Properties.Add("EdidString", [System.Management.CimType]::String, $false)
-    $newClass.Properties["EdidString"].Qualifiers.Add("read", $true)
-    $newClass.Properties["EdidString"].Qualifiers.Add("write", $true)
-    # HorizontalSize Property
-    $newClass.Properties.Add("HorizontalSize", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["HorizontalSize"].Qualifiers.Add("read", $true)
-    $newClass.Properties["HorizontalSize"].Qualifiers.Add("write", $true)
-    # VerticalSize Property
-    $newClass.Properties.Add("VerticalSize", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["VerticalSize"].Qualifiers.Add("read", $true)
-    $newClass.Properties["VerticalSize"].Qualifiers.Add("write", $true)
-    # DiagonalSize Property
-    $newClass.Properties.Add("DiagonalSize", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["DiagonalSize"].Qualifiers.Add("read", $true)
-    $newClass.Properties["DiagonalSize"].Qualifiers.Add("write", $true)
-    $newClass.Properties["DiagonalSize"].Qualifiers.Add("Description", "Diagonal size of the monitor in inches")
-    # MaxHorizontalRes Property
-    $newClass.Properties.Add("MaxHorizontalRes", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["MaxHorizontalRes"].Qualifiers.Add("read", $true)
-    $newClass.Properties["MaxHorizontalRes"].Qualifiers.Add("write", $true)
-    # MaxVerticalRes Property
-    $newClass.Properties.Add("MaxVerticalRes", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["MaxVerticalRes"].Qualifiers.Add("read", $true)
-    $newClass.Properties["MaxVerticalRes"].Qualifiers.Add("write", $true)
-    # AspectRatio Property
-    $newClass.Properties.Add("AspectRatio", [System.Management.CimType]::String, $false)
-    $newClass.Properties["AspectRatio"].Qualifiers.Add("read", $true)
-    $newClass.Properties["AspectRatio"].Qualifiers.Add("write", $true)
-    $newClass.Properties["AspectRatio"].Qualifiers.Add("Description", "Aspect Ratio of the monitor e.g. 4:3 or 1:1")
-    # ManufacturingYear Property
-    $newClass.Properties.Add("ManufacturingYear", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["ManufacturingYear"].Qualifiers.Add("read", $true)
-    $newClass.Properties["ManufacturingYear"].Qualifiers.Add("write", $true)
-    # ManufacturingWeek Property
-    $newClass.Properties.Add("ManufacturingWeek", [System.Management.CimType]::UInt32, $false)
-    $newClass.Properties["ManufacturingWeek"].Qualifiers.Add("read", $true)
-    $newClass.Properties["ManufacturingWeek"].Qualifiers.Add("write", $true)
-    # LastSeenDate Property
-    $newClass.Properties.Add("LastSeenDate", [System.Management.CimType]::DateTime, $false)
-    $newClass.Properties["LastSeenDate"].Qualifiers.Add("read", $true)
-    $newClass.Properties["LastSeenDate"].Qualifiers.Add("write", $true)
-    # Update CIM Class
-    $newClass.Put() | Out-Null
+function Register-CimClass_MonitorDetails {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]$ClassName = "MonitorDetails",
+        
+        [Parameter()]
+        [string]$Namespace = "root\cimv2"
+    )
+    
+    try {
+        # Get the schema
+        $schema = Get-MonitorDetailsCimSchema -ClassName $ClassName
+        
+        # Create a new class definition
+        $newClass = New-Object System.Management.ManagementClass($Namespace, [String]::Empty, $null)
+        $newClass["__CLASS"] = $schema.ClassName
+        $newClass.Qualifiers.Add("Static", $true)
+        
+        # Add each property to the class
+        foreach ($prop in $schema.Properties) {
+            $newClass.Properties.Add($prop.Name, $prop.Type, $false)
+            $newClass.Properties[$prop.Name].Qualifiers.Add("read", $true)
+            
+            # Add write qualifier if not read-only
+            if (-not $prop.ReadOnly) {
+                $newClass.Properties[$prop.Name].Qualifiers.Add("write", $true)
+            }
+            
+            # Add key qualifier if this is a key property
+            if ($prop.Key) {
+                $newClass.Properties[$prop.Name].Qualifiers.Add("key", $true)
+            }
+            
+            # Add description if provided
+            if ($prop.Description) {
+                $newClass.Properties[$prop.Name].Qualifiers.Add("Description", $prop.Description)
+            }
+        }
+        
+        # Create the class in WMI
+        $newClass.Put() | Out-Null
+        Write-Verbose "Successfully created CIM class '$($schema.ClassName)' in namespace '$Namespace'"
+    }
+    catch {
+        Write-Error "Failed to create CIM class '$ClassName': $_"
+        throw
+    }
 }
 
 #endregion --- Private functions
@@ -287,13 +405,13 @@ function Register-CIMClass_MonitorDetails {
 ##########################################################################################################
 
 # Remove CIM Class MonitorDetails only if properties differ
-$classRemoved = Remove-CIMClass_MonitorDetails
+$classRemoved = Remove-CimClass_MonitorDetails -Verbose
 $classExists = [bool] (Get-CimInstance -ClassName MonitorDetails -Namespace root\cimv2 -ErrorAction SilentlyContinue)
 # Only create the class if it was removed or doesn't exist
 if ($classRemoved -or -not $classExists) {
     try {
         # Create CIM Class
-        Register-CIMClass_MonitorDetails
+        Register-CimClass_MonitorDetails -Verbose
         Write-Verbose "CIM class created successfully"
     }
     catch {
@@ -439,7 +557,7 @@ foreach ($MonitorInfo in $MonitorsInfo) {
     
     if ($existingInstance) {
         # Update existing instance
-        $existingInstance | Set-CimInstance -Property $cimProperties -ErrorAction Stop
+        $existingInstance | Set-CimInstance -Property $cimProperties -ErrorAction Stop | Out-Null
     }
     else {
         # Create new instance
@@ -448,7 +566,6 @@ foreach ($MonitorInfo in $MonitorsInfo) {
         }
         catch {
             Write-Error "Could not create CIM instance of a class: $_"
-            $cimProperties
             throw "CIM class creation failed."
         }
     }
