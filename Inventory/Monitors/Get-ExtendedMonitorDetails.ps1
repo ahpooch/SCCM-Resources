@@ -361,6 +361,7 @@ function Register-CimClass_MonitorDetails {
         
         # Add each property to the class
         foreach ($prop in $schema.Properties) {
+            # Add property and its type to class
             $newClass.Properties.Add($prop.Name, $prop.Type, $false)
             # Add key qualifier if this is a key property
             if ($prop.Key) {
