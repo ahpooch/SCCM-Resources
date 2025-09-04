@@ -1,10 +1,32 @@
-##########################################################################################################
-### This script reads the EDID information stored in the registry for the currently connected monitors ###
-### and stores their most important pieces of identification (Name, Size, Serial Number etc) in WMI    ###
-### for later retrieval by SCCM                                                                        ###
-##########################################################################################################
-
-# This script creates new CIM class MonitorDitails in root\cimv2 to store information about monitors attached to a device.
+<#
+    .SYNOPSIS
+        This script is amed to create and populate CIM class MonitorInfo with information about attached monitors.
+    
+    .DESCRIPTION
+        This script reads the EDID information stored in the registry for the currently connected monitors
+        and stores their most important pieces of identification (Name, Size, Serial Number etc) in CIM class
+        MonitorDetails in root\cimv2 namespace for later retrieval by SCCM/ConfigMgr using Hardware Inventory.
+    
+    .NOTES
+        Author: @ahpooch
+        Name: Get-ExtendedMonitorDetails.ps1
+        Date: 04.09.2025
+        Version: 1.1.0
+        
+        Acknowlegement:
+        This script is powered and inspired by blog post
+        [Collecting monitor serial numbers with SCCM](https://exar.ch/collecting-monitor-serial-numbers-with-sccm/)
+        and initial script written by @exar.
+        The link to initial script is broken in the blog post page, but you could find it's archived version at
+        https://github.com/ahpooch/SCCM-Resources/blob/main/Inventory/Monitors/Archive/get-monitor-details.ps1
+    
+    .LINK
+        Lastest version of this script could be found here:
+        https://github.com/ahpooch/SCCM-Resources/blob/main/Inventory/Monitors/Get-ExtendedMonitorDetails.ps1
+    
+    .EXAMPLE
+        & ./Get-ExtendedMonitorDetails.ps1
+#>
 
 # Manufacturers codes and their corresponding names
 $ManufacturersHash = @{ 
@@ -283,7 +305,8 @@ function Compare-CimClassProperties {
                     Write-Verbose "Property $($prop.Name) should be Read-only but it is writable."
                     return $false
                 }
-            } else {
+            }
+            else {
                 if ($IsReadOnly) {
                     Write-Verbose "Property $($prop.Name) should be writable but it is Read-only."
                     return $false
