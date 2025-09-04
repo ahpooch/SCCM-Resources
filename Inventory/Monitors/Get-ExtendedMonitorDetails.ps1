@@ -278,7 +278,7 @@ function Compare-CimClassProperties {
         #Check write Qualifier is set for every non-Readonly property
         foreach ($prop in $existingClass.Properties) {
             # Get ReadOnly value from schema for current property
-            $ShouldBeReadOnly = [bool] ($schema.Properties | Where-Object { $_.Name -eq $prop.Name } | Select-Object -ExpandProperty ReadOnly)
+            $ShouldBeReadOnly = [bool] ($schema.Properties | Where-Object { $_.Name -eq $prop.Name }).ReadOnly
             # Get write Qualifier from existing CIM Class
             $IsReadOnly = -not [bool] $existingClass.Properties[$prop.Name].Qualifiers["write"]
             # Check compliance with schema
