@@ -6,10 +6,6 @@
 
 # This script creates new CIM class MonitorDitails in root\cimv2 to store information about monitors attached to a device.
 
-# Attention:
-# If CIM Class properties need to be extended or changed then expectedProperties hashtable
-# in Compare-CimClassProperties function should be changed accordingly
-
 # Manufacturers codes and their corresponding names
 $ManufacturersHash = @{ 
     "AAC" =	"AcerView"
@@ -366,16 +362,17 @@ function Register-CimClass_MonitorDetails {
         # Add each property to the class
         foreach ($prop in $schema.Properties) {
             $newClass.Properties.Add($prop.Name, $prop.Type, $false)
+            # Add key qualifier if this is a key property
+            if ($prop.Key) {
+                $newClass.Properties[$prop.Name].Qualifiers.Add("key", $true)
+            }
+
+            # Add read qualifier
             $newClass.Properties[$prop.Name].Qualifiers.Add("read", $true)
             
             # Add write qualifier if not read-only
             if (-not $prop.ReadOnly) {
                 $newClass.Properties[$prop.Name].Qualifiers.Add("write", $true)
-            }
-            
-            # Add key qualifier if this is a key property
-            if ($prop.Key) {
-                $newClass.Properties[$prop.Name].Qualifiers.Add("key", $true)
             }
             
             # Add description if provided
