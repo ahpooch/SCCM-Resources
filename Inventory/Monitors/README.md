@@ -2,7 +2,7 @@
 
 ## Implementation Description
 
-To gather inventory data about attached monitors we need to periodically run a script that collects information about connected monitors and writes it to custom CIM class `MonitorDetails` located at `ROOT\cimv2`, we use the method of periodically deploying a Standard Program. The Program itself in SCCM is based ona a Package with powershell script `Get-ExtendedMonitorDetails.ps1`.
+To gather inventory data about attached monitors we need to periodically run a script that collects information about connected monitors and write it to custom CIM class `MonitorDetails` located at `ROOT\cimv2`, we will use the method of periodically deploying a Standard Program. The Program itself in SCCM is based on a Package with powershell script `Get-ExtendedMonitorDetails.ps1`.
 
 ## Creating Package
 
@@ -14,10 +14,10 @@ Fill in:
 Name: ExtendedMonitorDetails
 Description: This package utilizes the Get-ExtendedMonitorDetails.ps1 script to create a custom CIM Class MonitorDetails.
 Manufacturer: Neon Cyber Crutches
-Version: 1.0.1
+Version: 1.1.0
 ```
 
-Select `This package contains source files`. Click `Browse` and select the folder where the file was saved. The example uses the path `\\<Server>\SMS_SOURCES$\Scripts\ExtendedMonitorDetails\Latest`.
+Select `This package contains source files`. Click `Browse` and select the folder where the `Get-ExtendedMonitorDetails.ps1` file was saved. The example uses the path `\\<Server>\SMS_SOURCES$\Scripts\ExtendedMonitorDetails\Latest`.
 Click `Next >` and select `Standard program`.
 Fill in:
 
@@ -58,14 +58,15 @@ select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R
 
 The deployment should occur periodically, for example, daily or preferably every few hours, to update the information in the CIM class. However, ultimately, the data refresh rate in reports will depend on the Hardware Inventory cycle frequency set for the clients.
 
-Select the collection, call the context menu, and select `Deploy -> Program`; in Software, find Get-ExtendedMonitorDetails via Browse.
+Chose the collection, invoke the context menu, and select `Deploy -> Program`.  
+In Software, find `Get-ExtendedMonitorDetails` via `Browse...` button.
 <img src="images/Pasted image 20250904012727.png" alt="Logo" width="100%" height="100%">
 Click `Next >`.
 Select the necessary Distribution Groups for content distribution.
 Click `Next >`.
 Action: Install, Purpose: Required.
 Click `Next >`.
-In Scheduling, opposite Assignment schedule, select `New...`, then `Schedule...`.
+In `Scheduling`, opposite `Assignment schedule`, select `New...`, then `Schedule...`.
 Select `Custom Interval` and the desired frequency for updating information about monitors connected to the device. In this case, 2 hours was chosen.
 Click `OK`, `OK`, and set `Rerun behaviour: Always rerun program`.
 <img src="images/Pasted image 20250904012657.png" alt="Logo" width="100%" height="100%">
@@ -83,7 +84,7 @@ Click `Close`.
 
 ## Hardware Inventory Class
 
-Next, configure the collection of information from the CIM class `ROOT\cimv2\MonitorDetails` into the SCCM database using the Hardware Inventory mechanism.
+Next, we configure the collection of information from the CIM class `ROOT\cimv2\MonitorDetails` into the SCCM database using the Hardware Inventory mechanism.
 
 ### Creating a Hardware Inventory Class
 
@@ -94,7 +95,6 @@ Custom class MonitorDetailes can be added in two ways:
 - **Adding based on a CIM class already registered on one of the devices.**
   This method allows adding any CIM class that has been created on any device. To use it, the script `Get-ExtendedMonitorDetails.ps1` must first be run on one of the devices.
 
->[!ATTENTION]
 >When working with Hardware Inventory, remember to use the `Default Client Settings` object. When using other manually created `Client Settings` objects, some classes and their parameters may be unavailable for editing (classes inherited from `Default Client Setting` are displayed grayed out), which can be surprising at the first time.
 
 #### Option 1 - Import from a .mof file
@@ -118,7 +118,7 @@ Click `OK`, `OK`.
 
 ### Verifying the Hardware Inventory Class
 
-To verify that the Hardware Inventory class is created and used, open `Administration -> Overview -> Client Settings` and open the properties of `Default Client Settings`. Then click `Set Classes...`, which will open the `Hardware Inventory Classes` window. It features search and filtering, which greatly simplifies the task of finding MonitorDetails class.
+To verify that the Hardware Inventory class is created and used, open `Administration -> Overview -> Client Settings` and open the properties of `Default Client Settings`. Then click `Set Classes...`, which will open the `Hardware Inventory Classes` window. It features search and filtering, which greatly simplifies the task of finding `MonitorDetails` class.
 
 <img src="images/Pasted image 20250904072212.png" alt="Logo" width="100%" height="100%">
 
