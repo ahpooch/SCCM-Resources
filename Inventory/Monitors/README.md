@@ -31,7 +31,8 @@ Run mode: Run with administrative rights
 Drive mode: Runs with UNC name
 ```
 
-![](./images/Pasted image 20250904010215.png)
+<img src="images/Pasted image 20250904010215.png" alt="Logo" width="100%" height="100%">
+
 Click `Next >`.
 Without making changes to Requirements, click `Next >`.
 After reviewing the Summary, click `Next >`.
@@ -58,7 +59,7 @@ select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R
 The deployment should occur periodically, for example, daily or preferably every few hours, to update the information in the CIM class. However, ultimately, the data refresh rate in reports will depend on the Hardware Inventory cycle frequency set for the clients.
 
 Select the collection, call the context menu, and select `Deploy -> Program`; in Software, find Get-ExtendedMonitorDetails via Browse.
-![](./images/Pasted image 20250904012727.png)
+<img src="images/Pasted image 20250904012727.png" alt="Logo" width="100%" height="100%">
 Click `Next >`.
 Select the necessary Distribution Groups for content distribution.
 Click `Next >`.
@@ -67,15 +68,15 @@ Click `Next >`.
 In Scheduling, opposite Assignment schedule, select `New...`, then `Schedule...`.
 Select `Custom Interval` and the desired frequency for updating information about monitors connected to the device. In this case, 2 hours was chosen.
 Click `OK`, `OK`, and set `Rerun behaviour: Always rerun program`.
-![](./images/Pasted image 20250904012657.png)
+<img src="images/Pasted image 20250904012657.png" alt="Logo" width="100%" height="100%">
 Click `Next >`.
 Activate the checkbox `Software installation` so the script runs regardless of maintenance windows.
-![](./images/Pasted image 20250904012812.png)
+<img src="images/Pasted image 20250904012812.png" alt="Logo" width="100%" height="100%">
 Click `Next >`.
 For both Boundary Groups cases, select:
 `Deployment options: Download content from distribution point and run locally`
 Activate the checkbox `Allow clients to use distribution points from the default site boundary group`.
-![](./images/Pasted image 20250904013001.png)
+<img src="images/Pasted image 20250904013001.png" alt="Logo" width="100%" height="100%">
 Click `Next >`.
 After reviewing the Summary, click `Next >`.
 Click `Close`.
@@ -101,29 +102,29 @@ Custom class MonitorDetailes can be added in two ways:
 Follow `Administration -> Overview -> Client Settings` and open the properties of `Default Client Settings`. Then click `Set Classes...`, which will open the `Hardware Inventory Classes` window. Click `Import...`
 Specify the location of `MonitorDetails.mof`, click `Open...`
 Leave `Import both hardware inventory classes and hardware inventory class settings` selected.
-![](./images/Pasted image 20250904075008.png)
+<img src="images/Pasted image 20250904075008.png" alt="Logo" width="100%" height="100%">
 Click `Import...`.
 
 #### Option 2 - Adding based on a CIM class already registered on one of the devices
 
 Follow `Administration -> Overview -> Client Settings` and open the properties of `Default Client Settings`. Then click `Set Classes...`, which will open the `Hardware Inventory Classes` window. Click `Add...`
 Then, in the `Connect to Windows Management Instrumentation (WMI)` window, enter the necessary connection values and click `Connect`
-![](./images/Pasted image 20250904080628.png)
+<img src="images/Pasted image 20250904080628.png" alt="Logo" width="100%" height="100%">
 Activate the checkbox for `MonitorDetails`
-![](./images/Pasted image 20250904084353.png)
+<img src="images/Pasted image 20250904084353.png" alt="Logo" width="100%" height="100%">
 If you click `Edit...`, you can set some additional parameters for the CIM class properties.
-![](./images/Pasted image 20250904084608.png)
+<img src="images/Pasted image 20250904084608.png" alt="Logo" width="100%" height="100%">
 Click `OK`, `OK`.
 
 ### Verifying the Hardware Inventory Class
 
 To verify that the Hardware Inventory class is created and used, open `Administration -> Overview -> Client Settings` and open the properties of `Default Client Settings`. Then click `Set Classes...`, which will open the `Hardware Inventory Classes` window. It features search and filtering, which greatly simplifies the task of finding MonitorDetails class.
 
-![](./images/Pasted image 20250904072212.png)
+<img src="images/Pasted image 20250904072212.png" alt="Logo" width="100%" height="100%">
 
 After implementation and completing data collection from endpoint devices, the data from the SCCM database can be used. For this, use the view `[CM_XXX].[dbo].[v_GS_MONITORDETAILS]`.
 An additional view with historical data will also be created: `[CM_XXX].[dbo].[v_HS_MONITORDETAILS]`
-![](./images/Pasted image 20250901224204.png)
+<img src="images/Pasted image 20250901224204.png" alt="Logo" width="100%" height="100%">
 Reports can be created in SSRS based on this data.
 
 ## SSRS Report Import
@@ -134,7 +135,7 @@ Go to `Data sources` and specify your SCCM `Shared data source`.
 After this, the report can be used in the standard way.
 
 In the current version, the MonitorDetails.rdl report is very simplified and does not include all possible monitor data available in the original CIM class.
-![](./images/Pasted image 20250904100344.png)
+<img src="images/Pasted image 20250904100344.png" alt="Logo" width="100%" height="100%">
 
 ## Links to resources this guide is inspired and powered by
 
